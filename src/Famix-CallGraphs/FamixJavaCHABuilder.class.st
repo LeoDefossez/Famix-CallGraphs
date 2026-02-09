@@ -35,16 +35,30 @@ FamixJavaCHABuilder >> addEdgesTo: aNode for: invocation types: possibleRuntimeT
 
 	| nodes |
 	nodes := possibleRuntimeTypes
-		         select: [ :type | type implementesMethodEquivalentTo: invocation invokedEntity ]
+		         select: [ :type |
+				         [ type implementesMethodEquivalentTo: invocation invokedEntity ]
+					         on: Error
+					         do: [ :exception |
+							         self addErrorTo: aNode invocation: invocation kind: type exception: exception  reason: 'An error occurend while trying to find the implementors of the invocked method. The model is not right.'.
+							         false ] ]
 		         thenCollect: [ :type | self nodeForMethodSignature: invocation invokedEntity signature kind: type stub: false ].
 	nodes
 		ifEmpty: [
 				invocation invokedEntity isStub
-					ifTrue: [ 
-						"In case we have an invocation to a stub method of an interface with no known implementation, we create a stub node"
+					ifTrue: [ "In case we have an invocation to a stub method of an interface with no known implementation, we create a stub node"
 						aNode addCallee: (self nodeForMethodSignature: invocation invokedEntity signature kind: invocation invokedEntity parentType stub: true) ]
-					ifFalse: [ self error: 'We should not get here?' ] ]
+					ifFalse: [ self addErrorTo: aNode invocation: invocation kind: invocation invokedEntity parentType exception: nil  reason: 'No matching node found. Either the model is wrong or the method has no implementor in the current model'. ] ]
 		ifNotEmpty: [ nodes do: [ :node | aNode addCallee: node ] ]
+]
+
+{ #category : 'accessing' }
+FamixJavaCHABuilder >> addErrorTo: aNode invocation: invocation kind: type exception: exception reason: reason [
+
+	| errorNode |
+	errorNode := (FamixCallGraphErrorNode methodSignature: invocation invokedEntity signature kind: type)
+		             exception: exception;
+		             reason: reason.
+	^ aNode addCallee: errorNode
 ]
 
 { #category : 'building' }
@@ -55,6 +69,9 @@ FamixJavaCHABuilder >> build [
 	[ worklist isEmpty ] whileFalse: [
 			self computeCallGraphOf: worklist first.
 			visited add: worklist removeFirst ].
+		
+	"If errors occured, inspect them."
+	graph errorNodes ifNotEmpty: [ :collection | collection inspect ].
 
 	^ graph
 ]

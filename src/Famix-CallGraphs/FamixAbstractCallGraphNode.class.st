@@ -153,6 +153,12 @@ FamixAbstractCallGraphNode >> isConstructor [
 ]
 
 { #category : 'testing' }
+FamixAbstractCallGraphNode >> isErrorNode [
+
+	^ false
+]
+
+{ #category : 'testing' }
 FamixAbstractCallGraphNode >> isStub [
 	^ self subclassResponsibility
 ]

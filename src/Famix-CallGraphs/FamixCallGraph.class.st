@@ -36,6 +36,12 @@ FamixCallGraph >> entryPoints: aCollection [
 				               ifFalse: [ method ] ]
 ]
 
+{ #category : 'accessing' }
+FamixCallGraph >> errorNodes [
+
+	^ self allNodes select: #isErrorNode 
+]
+
 { #category : 'helpers' }
 FamixCallGraph >> numberOfNodes [
 
