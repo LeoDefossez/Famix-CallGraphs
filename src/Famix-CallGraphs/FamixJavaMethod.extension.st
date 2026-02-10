@@ -31,3 +31,14 @@ FamixJavaMethod >> isEquivalentTo: aMethod [
 
 	^ true
 ]
+
+{ #category : '*Famix-CallGraphs' }
+FamixJavaMethod >> isImplementationOf: aMethod [ 
+	"Return true if I am an implemented method equivalent to the method as parameter."
+	
+	self isMethodDefinition ifFalse: [ ^false ]. "Return false if I am a declaration and not an implementation."
+	
+	self == aMethod ifTrue: [ ^ true ]. "fastest case"
+	
+	^ self isEquivalentTo: aMethod 
+]
