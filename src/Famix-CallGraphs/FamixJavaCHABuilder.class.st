@@ -23,6 +23,8 @@ For example:
 Originaly the implementation was using an `OrderedCollection` for the worklist and a `Set` for the visited list. But to check if we already have a node created for a method and kind it was taking a lot of time.
 Now the implementation is using two `Dictionary` and is using a hash for key. This is here for performance reasons. 
 This made a run go from 25min to 2min.
+
+For performance I also cache the possible runtime types of the types since we access it a lot.
 "
 Class {
 	#name : 'FamixJavaCHABuilder',
@@ -30,7 +32,8 @@ Class {
 	#instVars : [
 		'visited',
 		'worklist',
-		'reflectiveHook'
+		'reflectiveHook',
+		'typesMap'
 	],
 	#category : 'Famix-CallGraphs',
 	#package : 'Famix-CallGraphs'
@@ -91,7 +94,7 @@ FamixJavaCHABuilder >> computeCallGraphOf: aNode [
 	aNode outgoingInvocations do: [ :invocation |
 			(invocation isSuperInvocation or: [ invocation invokedEntity isConstructor ])
 				ifTrue: [ self addEdgesTo: aNode for: invocation types: { invocation invokedEntity parentType } ]
-				ifFalse: [ self addEdgesTo: aNode for: invocation types: invocation invokedEntity parentType possibleRuntimeTypes ] ].
+				ifFalse: [ self addEdgesTo: aNode for: invocation types: (self possibleRuntimeTypesOf: invocation invokedEntity parentType) ] ].
 			
 	"We allow the user to define a block to add edges if reflection is involved and the user knows what to call"
 	self reflectiveHook cull: aNode cull: self
@@ -103,6 +106,7 @@ FamixJavaCHABuilder >> initialize [
 	super initialize.
 	worklist := IdentityDictionary new.
 	visited := IdentityDictionary new.
+	typesMap := IdentityDictionary new. "Used to cache the possible runtime types"
 
 	self flag: #todo "Manage graph exploration:
 	- Is there a path between two methods?
@@ -125,6 +129,12 @@ FamixJavaCHABuilder >> nodeForMethodSignature: signature kind: kind stub: aBoole
 	aBoolean ifFalse: [ worklist at: id put: node ].
 
 	^ node
+]
+
+{ #category : 'building' }
+FamixJavaCHABuilder >> possibleRuntimeTypesOf: aKind [
+
+	^ typesMap at: aKind ifAbsentPut: [ aKind possibleRuntimeTypes ]
 ]
 
 { #category : 'accessing' }
