@@ -91,6 +91,13 @@ FamixAbstractCallGraphNode >> hash [
 	^ methodSignature hash bitXor: kind hash
 ]
 
+{ #category : 'private' }
+FamixAbstractCallGraphNode >> id [
+	"Used for the callgraph building"
+
+	^ kind idFor: methodSignature
+]
+
 { #category : 'initialization' }
 FamixAbstractCallGraphNode >> initialize [
 

@@ -64,11 +64,14 @@ FamixJavaCHABuilder >> addErrorTo: aNode invocation: invocation kind: type excep
 { #category : 'building' }
 FamixJavaCHABuilder >> build [
 
-	worklist addAll: self entryPoints.
+	self entryPoints do: [ :aNode | worklist at: aNode id put: aNode ].
 
 	[ worklist isEmpty ] whileFalse: [
-			self computeCallGraphOf: worklist first.
-			visited add: worklist removeFirst ].
+			| node |
+			node := worklist anyOne.
+			worklist removeKey: node id.
+			visited at: node id put: node.
+			self computeCallGraphOf: node ].
 		
 	"If errors occured, inspect them."
 	graph errorNodes ifNotEmpty: [ :collection | collection inspect ].
@@ -85,9 +88,7 @@ FamixJavaCHABuilder >> computeCallGraphOf: aNode [
 				ifFalse: [ self addEdgesTo: aNode for: invocation types: invocation invokedEntity parentType possibleRuntimeTypes ] ].
 			
 	"We allow the user to define a block to add edges if reflection is involved and the user knows what to call"
-	self reflectiveHook cull: aNode cull: self.
-
-	visited add: aNode
+	self reflectiveHook cull: aNode cull: self
 ]
 
 { #category : 'initialization' }
@@ -98,26 +99,23 @@ FamixJavaCHABuilder >> initialize [
 	- What are all the paths between two methods?
 	- Is a not reacheable?"
 	super initialize.
-	worklist := OrderedCollection new.
-	visited := Set new
+	worklist := Dictionary new.
+	visited := Dictionary new
 ]
 
 { #category : 'building' }
-FamixJavaCHABuilder >> nodeForMethodSignature: aString kind: kind stub: aBoolean [
+FamixJavaCHABuilder >> nodeForMethodSignature: signature kind: kind stub: aBoolean [
 
-	| node |
-	visited
-		detect: [ :aNode | aNode methodSignature = aString and: [ aNode kind = kind ] ]
-		ifFound: [ :aNode | ^ aNode ].
-	worklist
-		detect: [ :aNode | aNode methodSignature = aString and: [ aNode kind = kind ] ]
-		ifFound: [ :aNode | ^ aNode ].
+	| node id |
+	id := kind idFor: signature.
+	visited at: id ifPresent: [ :aNode | ^ aNode ].
+	worklist at: id ifPresent: [ :aNode | ^ aNode ].
 
 	node := (aBoolean
 		         ifTrue: [ FamixCallGraphStubNode ]
-		         ifFalse: [ FamixCallGraphNode ]) methodSignature: aString kind: kind.
+		         ifFalse: [ FamixCallGraphNode ]) methodSignature: signature kind: kind.
 
-	aBoolean ifFalse: [ worklist add: node ].
+	aBoolean ifFalse: [ worklist at: id put: node ].
 
 	^ node
 ]
