@@ -101,8 +101,8 @@ FamixJavaCHABuilder >> computeCallGraphOf: aNode [
 FamixJavaCHABuilder >> initialize [
 
 	super initialize.
-	worklist := Dictionary new.
-	visited := Dictionary new.
+	worklist := IdentityDictionary new.
+	visited := IdentityDictionary new.
 
 	self flag: #todo "Manage graph exploration:
 	- Is there a path between two methods?
