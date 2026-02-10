@@ -5,9 +5,10 @@ FamixJavaMethod >> isEquivalentTo: aMethod [
 	"A method is equivalent if their name are the same and parameters are the same.
 	
 	There is a tricky case with parametrics because in case a type is a type parameter, we need to find its concretization to have the real type in the context."
-
+	
+	self name size = aMethod name size ifFalse: [ ^ false ]. "This might seems useless since we compare the name right after, but we pass so much in this method that it has an impact on perfs. It is faster to compare integer than strings"
 	self name = aMethod name ifFalse: [ ^ false ].
-
+	
 	self parameters size = aMethod parameters size ifFalse: [ ^ false ].
 
 	"We need to ensure the type of each parameter is the same after applying the concretizations to the type parameters"
