@@ -17,6 +17,12 @@ For example:
 					node addCallee: (builder nodeForMethodSignature: 'myOtherMethod(String)' kind: (model allClasses detect: [ :class | class name = 'Titi' ]) stub: false) ] ];
 	build
 ```
+
+# Implementation detail
+
+Originaly the implementation was using an `OrderedCollection` for the worklist and a `Set` for the visited list. But to check if we already have a node created for a method and kind it was taking a lot of time.
+Now the implementation is using two `Dictionary` and is using a hash for key. This is here for performance reasons. 
+This made a run go from 25min to 2min.
 "
 Class {
 	#name : 'FamixJavaCHABuilder',
@@ -64,13 +70,13 @@ FamixJavaCHABuilder >> addErrorTo: aNode invocation: invocation kind: type excep
 { #category : 'building' }
 FamixJavaCHABuilder >> build [
 
-	self entryPoints do: [ :aNode | worklist at: aNode id put: aNode ].
+	self entryPoints do: [ :aNode | worklist at: aNode hash put: aNode ].
 
 	[ worklist isEmpty ] whileFalse: [
 			| node |
 			node := worklist anyOne.
-			worklist removeKey: node id.
-			visited at: node id put: node.
+			worklist removeKey: node hash.
+			visited at: node hash put: node.
 			self computeCallGraphOf: node ].
 		
 	"If errors occured, inspect them."
@@ -94,20 +100,21 @@ FamixJavaCHABuilder >> computeCallGraphOf: aNode [
 { #category : 'initialization' }
 FamixJavaCHABuilder >> initialize [
 
-	self flag: #todo. "Manage graph exploration:
+	super initialize.
+	worklist := Dictionary new.
+	visited := Dictionary new.
+
+	self flag: #todo "Manage graph exploration:
 	- Is there a path between two methods?
 	- What are all the paths between two methods?
 	- Is a not reacheable?"
-	super initialize.
-	worklist := Dictionary new.
-	visited := Dictionary new
 ]
 
 { #category : 'building' }
 FamixJavaCHABuilder >> nodeForMethodSignature: signature kind: kind stub: aBoolean [
 
 	| node id |
-	id := kind idFor: signature.
+	id := kind idFor: signature. "This is the equivalent of the hash of the node to potentialy find."
 	visited at: id ifPresent: [ :aNode | ^ aNode ].
 	worklist at: id ifPresent: [ :aNode | ^ aNode ].
 

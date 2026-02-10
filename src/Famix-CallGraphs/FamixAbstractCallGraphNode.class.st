@@ -86,14 +86,7 @@ FamixAbstractCallGraphNode >> hasNodeMatching: aBlock [
 
 { #category : 'comparing' }
 FamixAbstractCallGraphNode >> hash [
-	"Answer an integer value that is related to the identity of the receiver."
-
-	^ methodSignature hash bitXor: kind hash
-]
-
-{ #category : 'private' }
-FamixAbstractCallGraphNode >> id [
-	"Used for the callgraph building"
+	"This is important because the builder will use the hash to find nodes with the right kind and method"
 
 	^ kind idFor: methodSignature
 ]
