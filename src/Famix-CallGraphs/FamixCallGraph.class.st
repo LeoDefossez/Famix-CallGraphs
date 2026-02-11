@@ -2,11 +2,18 @@ Class {
 	#name : 'FamixCallGraph',
 	#superclass : 'Object',
 	#instVars : [
-		'entryPoints'
+		'entryPoints',
+		'errors'
 	],
 	#category : 'Famix-CallGraphs',
 	#package : 'Famix-CallGraphs'
 }
+
+{ #category : 'adding' }
+FamixCallGraph >> addError: aNode [
+
+	errors add: aNode
+]
 
 { #category : 'helpers' }
 FamixCallGraph >> allNodes [
@@ -39,7 +46,14 @@ FamixCallGraph >> entryPoints: aCollection [
 { #category : 'accessing' }
 FamixCallGraph >> errorNodes [
 
-	^ self allNodes select: #isErrorNode 
+	^ errors
+]
+
+{ #category : 'initialization' }
+FamixCallGraph >> initialize [
+
+	super initialize.
+	errors := IdentitySet new
 ]
 
 { #category : 'helpers' }

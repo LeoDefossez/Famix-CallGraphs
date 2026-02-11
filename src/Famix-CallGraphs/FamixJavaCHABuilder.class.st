@@ -41,33 +41,53 @@ Class {
 
 { #category : 'building' }
 FamixJavaCHABuilder >> addEdgesTo: aNode for: invocation types: possibleRuntimeTypes [
+	"We save the invokedEntity and signature for speed reasons. It is slower to access a slot than an ivar and we get so much in this method that it has an impact. "
 
-	| nodes |
+	| nodes invokedEntity signature |
+	invokedEntity := invocation invokedEntity.
+	signature := invokedEntity signature.
+
 	nodes := possibleRuntimeTypes
 		         select: [ :type |
-				         [ type implementesMethodEquivalentTo: invocation invokedEntity ]
+				         [ type implementesMethodEquivalentTo: invokedEntity ]
 					         on: Error
 					         do: [ :exception |
-							         self addErrorTo: aNode invocation: invocation kind: type exception: exception  reason: 'An error occurend while trying to find the implementors of the invocked method. The model is not right.'.
+							         self
+								         addErrorTo: aNode
+								         signature: signature
+								         kind: type
+								         exception: exception
+								         reason: 'An error occurend while trying to find the implementors of the invocked method. The model is not right.'.
 							         false ] ]
-		         thenCollect: [ :type | self nodeForMethodSignature: invocation invokedEntity signature kind: type stub: false ].
+		         thenCollect: [ :type | self nodeForMethodSignature: signature kind: type stub: false ].
 	nodes
 		ifEmpty: [
-				invocation invokedEntity isStub
+				invokedEntity isStub
 					ifTrue: [ "In case we have an invocation to a stub method of an interface with no known implementation, we create a stub node"
-						aNode addCallee: (self nodeForMethodSignature: invocation invokedEntity signature kind: invocation invokedEntity parentType stub: true) ]
-					ifFalse: [ self addErrorTo: aNode invocation: invocation kind: invocation invokedEntity parentType exception: nil  reason: 'No matching node found. Either the model is wrong or the method has no implementor in the current model'. ] ]
+						aNode addCallee: (self nodeForMethodSignature: signature kind: invokedEntity parentType stub: true) ]
+					ifFalse: [
+							self
+								addErrorTo: aNode
+								signature: signature
+								kind: invokedEntity parentType
+								exception: nil
+								reason: 'No matching node found. Either the model is wrong or the method has no implementor in the current model' ] ]
 		ifNotEmpty: [ nodes do: [ :node | aNode addCallee: node ] ]
 ]
 
 { #category : 'accessing' }
-FamixJavaCHABuilder >> addErrorTo: aNode invocation: invocation kind: type exception: exception reason: reason [
+FamixJavaCHABuilder >> addErrorTo: aNode signature: signature kind: type exception: exception reason: reason [
+	"We check if we already have an error node like this. We use the hash for speed reasons."
 
-	| errorNode |
-	errorNode := (FamixCallGraphErrorNode methodSignature: invocation invokedEntity signature kind: type)
-		             exception: exception;
-		             reason: reason.
-	^ aNode addCallee: errorNode
+	aNode addCallee: (graph errorNodes
+			 detect: [ :node | node hash = (type idFor: signature) ]
+			 ifNone: [
+					 | errorNode |
+					 errorNode := (FamixCallGraphErrorNode methodSignature: signature kind: type)
+						              exception: exception;
+						              reason: reason.
+					 graph addError: errorNode.
+					 errorNode ])
 ]
 
 { #category : 'building' }
