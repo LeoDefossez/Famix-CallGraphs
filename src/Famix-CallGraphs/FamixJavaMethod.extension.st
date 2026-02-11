@@ -17,14 +17,18 @@ FamixJavaMethod >> isEquivalentTo: aMethod [
 
 			realType1 := param1 typing declaredType.
 			realType1 isClass ifFalse: [ "We have a type parameter and we need to find its concretization."
+					| aName |
+					aName := realType1 name. "Saving the name to save time in the loop"
 					aMethod parentType applicableConcretizations
-						detect: [ :concretization | concretization typeArgument isClass and: [ concretization typeParameter name = realType1 name ] ]
+						detect: [ :concretization | concretization typeArgument isClass and: [ concretization typeParameter name = aName ] ]
 						ifFound: [ :concretization | realType1 := concretization typeArgument ] ].
 
 			realType2 := param2 typing declaredType.
 			realType2 isClass ifFalse: [ "We have a type parameter and we need to find its concretization."
+					| aName |
+					aName := realType2 name. "Saving the name to save time in the loop"
 					self parentType applicableConcretizations
-						detect: [ :concretization | concretization typeArgument isClass and: [ concretization typeParameter name = realType2 name ] ]
+						detect: [ :concretization | concretization typeArgument isClass and: [ concretization typeParameter name = aName ] ]
 						ifFound: [ :concretization | realType2 := concretization typeArgument ] ].
 
 			"We compare the name and not the instances because they can be the same type coming from different classes that are equivalent."
