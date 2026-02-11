@@ -18,6 +18,11 @@ FamixCallGraphErrorNode >> callees [
 	^ #()
 ]
 
+{ #category : 'accessing' }
+FamixCallGraphErrorNode >> exception: anObject [
+	exception := anObject
+]
+
 { #category : 'testing' }
 FamixCallGraphErrorNode >> isErrorNode [
 
@@ -28,4 +33,9 @@ FamixCallGraphErrorNode >> isErrorNode [
 FamixCallGraphErrorNode >> isStub [
 
 	^ self realMethod isStub
+]
+
+{ #category : 'accessing' }
+FamixCallGraphErrorNode >> reason: anObject [
+	reason := anObject
 ]
