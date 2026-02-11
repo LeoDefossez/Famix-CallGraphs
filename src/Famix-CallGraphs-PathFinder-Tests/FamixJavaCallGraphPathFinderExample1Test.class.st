@@ -138,7 +138,7 @@ FamixJavaCallGraphPathFinderExample1Test >> testUnsafeFindPathFromToFirstNodeNot
 
 	| entrypoint endpoint |
 	endpoint := self graph allNodes anyOne.
-	entrypoint := FamixCallGraphNode new.
+	entrypoint := FamixCallGraphNode methodSignature: 'main(String[])' kind: endpoint kind.
 
 	self shouldnt: [ pathFinder unsafeFindPathFrom: entrypoint to: endpoint ] raise: Error
 ]
