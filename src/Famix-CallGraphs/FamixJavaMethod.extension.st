@@ -12,7 +12,7 @@ FamixJavaMethod >> isEquivalentTo: aMethod [
 	self parameters size = aMethod parameters size ifFalse: [ ^ false ].
 
 	"We need to ensure the type of each parameter is the same after applying the concretizations to the type parameters"
-	self orederedParameters with: aMethod orederedParameters do: [ :param1 :param2 |
+	self orderedParameters with: aMethod orderedParameters do: [ :param1 :param2 |
 			| realType1 realType2 |
 
 			realType1 := param1 typing declaredType.

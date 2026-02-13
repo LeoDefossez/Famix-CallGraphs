@@ -7,7 +7,7 @@ FamixTMethod >> asCallGraphNode [
 ]
 
 { #category : '*Famix-CallGraphs' }
-FamixTMethod >> orederedParameters [
+FamixTMethod >> orderedParameters [
 
-	^ self parameters sorted: [ :method | method sourceAnchor startPos ] ascending
+	^ self cacheAt: #orderedParameters ifAbsentPut: [ self parameters sorted: [ :method | method sourceAnchor startPos ] ascending ]
 ]
