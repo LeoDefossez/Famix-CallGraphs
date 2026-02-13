@@ -92,15 +92,15 @@ FamixJavaCHABuilder >> addErrorTo: aNode signature: signature kind: type excepti
 
 { #category : 'building' }
 FamixJavaCHABuilder >> build [
-
 	self entryPoints do: [ :aNode | worklist at: aNode hash put: aNode ].
 
 	[ worklist isEmpty ] whileFalse: [
-			| node |
-			node := worklist anyOne.
-			worklist removeKey: node hash.
-			visited at: node hash put: node.
-			self computeCallGraphOf: node ].
+		"Usually we would treat only one node at a time but this is more costly than doing by batch"
+		| toVisit |
+		toVisit := worklist values.
+		worklist removeAll.
+		toVisit do: [ :node | visited at: node hash put: node  ]. "If we do both things in the same loop sone nodes will be missing in `visited` and could lead to errors later."
+		toVisit do: [ :node | self computeCallGraphOf: node ] ].
 		
 	"If errors occured, inspect them."
 	graph errorNodes ifNotEmpty: [ :collection | collection inspect ].
