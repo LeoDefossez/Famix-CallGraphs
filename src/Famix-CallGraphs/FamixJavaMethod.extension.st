@@ -1,13 +1,16 @@
 Extension { #name : 'FamixJavaMethod' }
 
 { #category : '*Famix-CallGraphs' }
-FamixJavaMethod >> isEquivalentTo: aMethod [
-	"A method is equivalent if their name are the same and parameters are the same.
+FamixJavaMethod >> isImplementationOf: aMethod [ 
+	"Return true if I am an implemented method equivalent to the method as parameter.
+	
+	A method is equivalent if their name are the same and parameters are the same. We already verified the name before getting here.
 	
 	There is a tricky case with parametrics because in case a type is a type parameter, we need to find its concretization to have the real type in the context."
-	
-	self name size = aMethod name size ifFalse: [ ^ false ]. "This might seems useless since we compare the name right after, but we pass so much in this method that it has an impact on perfs. It is faster to compare integer than strings"
-	self name = aMethod name ifFalse: [ ^ false ].
+
+	self isMethodDefinition ifFalse: [ ^ false ]. "We reject method declarations"
+
+	self == aMethod ifTrue: [ ^ true ]. "fastest case"
 	
 	self parameters size = aMethod parameters size ifFalse: [ ^ false ].
 
@@ -35,15 +38,4 @@ FamixJavaMethod >> isEquivalentTo: aMethod [
 			realType1 name = realType2 name ifFalse: [ ^ false ] ].
 
 	^ true
-]
-
-{ #category : '*Famix-CallGraphs' }
-FamixJavaMethod >> isImplementationOf: aMethod [ 
-	"Return true if I am an implemented method equivalent to the method as parameter."
-	
-	self isMethodDefinition ifFalse: [ ^false ]. "Return false if I am a declaration and not an implementation."
-	
-	self == aMethod ifTrue: [ ^ true ]. "fastest case"
-	
-	^ self isEquivalentTo: aMethod 
 ]

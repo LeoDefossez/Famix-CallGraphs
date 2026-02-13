@@ -105,6 +105,7 @@ FamixJavaCHABuilder >> build [
 	"If errors occured, inspect them."
 	graph errorNodes ifNotEmpty: [ :collection | collection inspect ].
 
+	(self entryPoints anyOne realMethod mooseModel allUsing: FamixTType) do: [ :type | type removeCache: #methodsMap ].
 	(self entryPoints anyOne realMethod mooseModel allUsing: FamixTMethod) do: [ :type | type removeCache: #orderedParameters ].
 	(self entryPoints anyOne realMethod mooseModel allUsing: FamixTWithInheritances) do: [ :type | type removeCache: #applicableConcretizations ].
 
