@@ -18,6 +18,16 @@ For example:
 	build
 ```
 
+# Caching
+
+The algo is building some caches in the caches of the entities. Those caches are kept after building a call graph in case multiple needs to be built. 
+
+If you wish to flush the caches to same some memory once the call graph is built you can execute:
+
+```st
+	model resetCallGraphCaches
+```
+
 # Implementation detail
 
 Originaly the implementation was using an `OrderedCollection` for the worklist and a `Set` for the visited list. But to check if we already have a node created for a method and kind it was taking a lot of time.
@@ -104,10 +114,6 @@ FamixJavaCHABuilder >> build [
 		
 	"If errors occured, inspect them."
 	graph errorNodes ifNotEmpty: [ :collection | collection inspect ].
-
-	(self entryPoints anyOne realMethod mooseModel allUsing: FamixTType) do: [ :type | type removeCache: #methodsMap ].
-	(self entryPoints anyOne realMethod mooseModel allUsing: FamixTMethod) do: [ :type | type removeCache: #orderedParameters ].
-	(self entryPoints anyOne realMethod mooseModel allUsing: FamixTWithInheritances) do: [ :type | type removeCache: #applicableConcretizations ].
 
 	^ graph
 ]

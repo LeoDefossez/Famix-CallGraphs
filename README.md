@@ -49,6 +49,12 @@ Or, using the moose name of the entity:
 (FamixJavaCHABuilder entryPoint: (tagcollections31 entityNamed: #'org.apache.commons.collections.map.HashedMap.readObject(ObjectInputStream)')) build.
 ```
 
+Some caches are created during the building. If you wish to save space, you can flush them executing:
+
+```smalltalk
+	model resetCallGraphCaches
+```
+
 ### More Documentation
 
 You can find more documentation here: [documentation](resources/documentation/UserDocumentation.md)
