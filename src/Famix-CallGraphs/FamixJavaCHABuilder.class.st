@@ -18,6 +18,16 @@ For example:
 	build
 ```
 
+# Caching
+
+The algo is building some caches in the caches of the entities. Those caches are kept after building a call graph in case multiple needs to be built. 
+
+If you wish to flush the caches to same some memory once the call graph is built you can execute:
+
+```st
+	model resetCallGraphCaches
+```
+
 # Implementation detail
 
 Originaly the implementation was using an `OrderedCollection` for the worklist and a `Set` for the visited list. But to check if we already have a node created for a method and kind it was taking a lot of time.
@@ -92,15 +102,15 @@ FamixJavaCHABuilder >> addErrorTo: aNode signature: signature kind: type excepti
 
 { #category : 'building' }
 FamixJavaCHABuilder >> build [
-
 	self entryPoints do: [ :aNode | worklist at: aNode hash put: aNode ].
 
 	[ worklist isEmpty ] whileFalse: [
-			| node |
-			node := worklist anyOne.
-			worklist removeKey: node hash.
-			visited at: node hash put: node.
-			self computeCallGraphOf: node ].
+		"Usually we would treat only one node at a time but this is more costly than doing by batch"
+		| toVisit |
+		toVisit := worklist values.
+		worklist removeAll.
+		toVisit do: [ :node | visited at: node hash put: node  ]. "If we do both things in the same loop sone nodes will be missing in `visited` and could lead to errors later."
+		toVisit do: [ :node | self computeCallGraphOf: node ] ].
 		
 	"If errors occured, inspect them."
 	graph errorNodes ifNotEmpty: [ :collection | collection inspect ].

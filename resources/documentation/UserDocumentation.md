@@ -30,6 +30,13 @@ Examples:
 (FamixJavaCHABuilder entryPoint: (tagcollections31 entityNamed: #'org.apache.commons.collections.map.HashedMap.readObject(ObjectInputStream)')) build.
 ```
 
+The algo is building some caches in the caches of the entities. Those caches are kept after building a call graph in case multiple needs to be built. 
+If you wish to flush the caches to same some memory once the call graph is built you can execute:
+
+```smalltalk
+	model resetCallGraphCaches
+```
+
 ## CallGraph result
 
 Once a CallGraph algorithm was applied, one will get an instance of `FamixCallGraph` as a result.
