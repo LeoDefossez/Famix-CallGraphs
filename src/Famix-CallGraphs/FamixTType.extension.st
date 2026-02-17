@@ -17,9 +17,11 @@ FamixTType >> methodsNamed: aName [
 	
 	Because of the last point we made FamixTMethod and UndefinedObject polymorphic with collections on the API used on my result."
 
-	((self cacheAt: #methodNames ifAbsentPut: [ self methods collect: [ :m | m name hash ] as: IdentitySet ]) includes: aName hash) ifFalse: [ ^ nil ].
+	| hash |
+	hash := aName hash.
+	((self cacheAt: #methodNames ifAbsentPut: [ self methods collect: [ :m | m name hash ] as: IdentitySet ]) includes: hash) ifFalse: [ ^ nil ].
 
-	^ (self cacheAt: #methodsMap ifAbsentPut: [ IdentityDictionary new: self methods size ]) at: aName hash ifAbsentPut: [
+	^ (self cacheAt: #methodsMap ifAbsentPut: [ IdentityDictionary new: self methods size ]) at: hash ifAbsentPut: [
 			  | result |
 			  self methods do: [ :method | method name = aName ifTrue: [ result := result addMethodForCallGraph: method ] ].
 			  result ]

@@ -53,36 +53,27 @@ Class {
 FamixJavaCHABuilder >> addEdgesTo: aNode for: invocation types: possibleRuntimeTypes [
 	"We save the invokedEntity and signature for speed reasons. It is slower to access a slot than an ivar and we get so much in this method that it has an impact. "
 
-	| nodes invokedEntity signature |
+	| nodes invokedEntity signature encounterMatchingNode |
 	invokedEntity := invocation invokedEntity.
 	signature := invokedEntity signature.
+	encounterMatchingNode := false. "In the past we used a #select:thenCollect: and an #ifEmpty:ifNotEmpty instead but this is creating a lot of temporary collections stressing the GC. So now we only do a #do: and we use this variable "
 
-	nodes := possibleRuntimeTypes
-		         select: [ :type |
-				         [ type implementesMethodEquivalentTo: invokedEntity ]
-					         on: Error
-					         do: [ :exception |
-							         self
-								         addErrorTo: aNode
-								         signature: signature
-								         kind: type
-								         exception: exception
-								         reason: 'An error occurend while trying to find the implementors of the invocked method. The model is not right.'.
-							         false ] ]
-		         thenCollect: [ :type | self nodeForMethodSignature: signature kind: type stub: false ].
-	nodes
-		ifEmpty: [
-				invokedEntity isStub
-					ifTrue: [ "In case we have an invocation to a stub method of an interface with no known implementation, we create a stub node"
-						aNode addCallee: (self nodeForMethodSignature: signature kind: invokedEntity parentType stub: true) ]
-					ifFalse: [
-							self
-								addErrorTo: aNode
-								signature: signature
-								kind: invokedEntity parentType
-								exception: nil
-								reason: 'No matching node found. Either the model is wrong or the method has no implementor in the current model' ] ]
-		ifNotEmpty: [ nodes do: [ :node | aNode addCallee: node ] ]
+	nodes := possibleRuntimeTypes do: [ :type |
+			         [
+				         (type implementesMethodEquivalentTo: invokedEntity) ifTrue: [
+						         encounterMatchingNode := true.
+						         aNode addCallee: (self nodeForMethodSignature: signature kind: type stub: false) ] ]
+				         on: Error
+				         do: [ :exception |
+						         self addErrorTo: aNode signature: signature kind: type exception: exception reason: 'An error occurend while trying to find the implementors of the invocked method. The model is not right.' ] ].
+
+	encounterMatchingNode ifFalse: [
+			invokedEntity isStub
+				ifTrue: [
+					"In case we have an invocation to a stub method of an interface with no known implementation, we create a stub node"
+					aNode addCallee: (self nodeForMethodSignature: signature kind: invokedEntity parentType stub: true) ]
+				ifFalse: [
+						self addErrorTo: aNode signature: signature kind: invokedEntity parentType exception: nil reason: 'No matching node found. Either the model is wrong or the method has no implementor in the current model' ] ]
 ]
 
 { #category : 'accessing' }
