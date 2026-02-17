@@ -4,7 +4,10 @@ Extension { #name : 'MooseModel' }
 MooseModel >> resetCallGraphCaches [
 	"Flushes the caches used by callgraph builders."
 
-	(self allUsing: FamixTType) do: [ :type | type removeCache: #methodsMap ].
+	(self allUsing: FamixTType) do: [ :type |
+			type
+				removeCache: #methodsMap;
+				removeCache: #methodNames ].
 	(self allUsing: FamixTMethod) do: [ :type | type removeCache: #orderedParameters ].
 	(self allUsing: FamixTWithInheritances) do: [ :type | type removeCache: #applicableConcretizations ]
 ]
