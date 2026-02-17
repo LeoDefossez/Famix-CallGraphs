@@ -3,20 +3,26 @@ Extension { #name : 'FamixTType' }
 { #category : '*Famix-CallGraphs' }
 FamixTType >> implementesMethodEquivalentTo: aMethod [
 
-	^ (self methodsNamed: aMethod name) anySatisfy: [ :method | method isImplementationOf: aMethod ]
+	^ (self methodsNamed: aMethod name)
+		  ifNil: [ false ]
+		  ifNotNil: [ :methods | methods anySatisfy: [ :method | method isImplementationOf: aMethod ] ]
 ]
 
 { #category : '*Famix-CallGraphs' }
 FamixTType >> methodsNamed: aName [
-	"We use a cache for speed reasons. We will probably get multiple time through here and we need to have a fast way to get the methods of the right name.
+	"This method is more complex than necessary for speed reasons. This is where most of the time of the call graph building is spent so we did few optimizations:
+	- Compare the lenght of names before the names 
+	- Use the hash of the method name as key because the name cannot work with an IdentityDictionary and a simple Dictionary is slower
+	- Do not create a collection if we have 0 or 1 method of the right name because the vast majority of collections will have less than 2 elements but their number will stress the GC (20% of the call graph building was spend in GC of those collections)
 	
-	Checking the size before the name for speed reasons."
+	Because of the last point we made FamixTMethod and UndefinedObject polymorphic with collections on the API used on my result."
 
 	| nameSize |
 	nameSize := aName size.
-	^ (self cacheAt: #methodsMap ifAbsentPut: [ IdentityDictionary new ])
-		  at: aName
-		  ifAbsentPut: [ self methods select: [ :method | method name size = nameSize and: [ method name = aName ] ] ]
+	^ (self cacheAt: #methodsMap ifAbsentPut: [ IdentityDictionary new: self methods size ]) at: aName hash ifAbsentPut: [
+			  | result |
+			  self methods do: [ :method | (method name size = nameSize and: [ method name = aName ]) ifTrue: [ result := result addMethodForCallGraph: method ] ].
+			  result ]
 ]
 
 { #category : '*Famix-CallGraphs' }
