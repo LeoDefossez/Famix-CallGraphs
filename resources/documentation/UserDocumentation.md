@@ -4,6 +4,9 @@
 
 - [Famix CallGraphs](#famix-callgraphs)
   - [Class Hierarchy Analysis (CHA)](#class-hierarchy-analysis-cha)
+    - [Options](#options)
+      - [Max Depth](#max-depth)
+      - [Reflective hook](#reflective-hook)
   - [CallGraph result](#callgraph-result)
   - [Management of stubs](#management-of-stubs)
   - [Famix-CallGraphs and FamixBridge](#famix-callgraphs-and-famixbridge)
@@ -37,6 +40,25 @@ If you wish to flush the caches to same some memory once the call graph is built
 	model resetCallGraphCaches
 ```
 
+### Options
+
+The algo provides some options. 
+
+#### Max Depth
+ 
+It is possible to set a max depth to not build the full CallGraph but stop at a maximum depth. 
+
+```st
+	(FamixJavaCHABuilder entryPoints: (model allMethods select: [ :method | method name = 'main' ]))
+		maxDepth: 10; "Will build 10 nodes depth"
+		build
+```
+
+#### Reflective hook
+
+Sometimes we have reflective calls that we cannot find in the call graph. 
+If the user knows what is invoked, they can use #reflectiveHook: to add the missing nodes "by hand"
+
 ## CallGraph result
 
 Once a CallGraph algorithm was applied, one will get an instance of `FamixCallGraph` as a result.
@@ -54,6 +76,7 @@ A `FamixCallGraphNode` knows a few useful information:
 On top of this, the call graph and call graph nodes are providing some methods to explore the call graph.
 
 > Note: This is still a work in progress. I currently implemented only what is needed by the tests of the project. In the future I want to add an integration with pharo-ai graph algorithms.
+
 
 ## Management of stubs
 

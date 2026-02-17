@@ -5,7 +5,8 @@ Class {
 	#name : 'FamixAbstractCallGraphBuilder',
 	#superclass : 'Object',
 	#instVars : [
-		'graph'
+		'graph',
+		'maxDepth'
 	],
 	#category : 'Famix-CallGraphs',
 	#package : 'Famix-CallGraphs'
@@ -59,5 +60,18 @@ FamixAbstractCallGraphBuilder >> graph: anObject [
 FamixAbstractCallGraphBuilder >> initialize [
 
 	super initialize.
-	graph := FamixCallGraph new
+	graph := FamixCallGraph new.
+	maxDepth := Float infinity 
+]
+
+{ #category : 'accessing' }
+FamixAbstractCallGraphBuilder >> maxDepth [
+
+	^ maxDepth
+]
+
+{ #category : 'accessing' }
+FamixAbstractCallGraphBuilder >> maxDepth: aNumber [
+
+	maxDepth := aNumber
 ]

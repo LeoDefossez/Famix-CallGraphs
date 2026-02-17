@@ -18,6 +18,25 @@ For example:
 	build
 ```
 
+## Options
+
+The algo provides some options. 
+
+### Max Depth
+ 
+It is possible to set a max depth to not build the full CallGraph but stop at a maximum depth. 
+
+```st
+	(FamixJavaCHABuilder entryPoints: (model allMethods select: [ :method | method name = 'main' ]))
+		maxDepth: 10; ""Will build 10 nodes depth""
+		build
+```
+
+### Reflective hook
+
+Sometimes we have reflective calls that we cannot find in the call graph. 
+If the user knows what is invoked, they can use #reflectiveHook: to add the missing nodes ""by hand""
+
 # Caching
 
 The algo is building some caches in the caches of the entities. Those caches are kept after building a call graph in case multiple needs to be built. 
@@ -93,11 +112,14 @@ FamixJavaCHABuilder >> addErrorTo: aNode signature: signature kind: type excepti
 
 { #category : 'building' }
 FamixJavaCHABuilder >> build [
+	| numberOfIterations |
+	numberOfIterations := 0.
 	self entryPoints do: [ :aNode | worklist at: aNode hash put: aNode ].
 
-	[ worklist isEmpty ] whileFalse: [
+	[ numberOfIterations >= maxDepth or: [ worklist isEmpty] ] whileFalse: [
 		"Usually we would treat only one node at a time but this is more costly than doing by batch"
 		| toVisit |
+		numberOfIterations := numberOfIterations + 1.
 		toVisit := worklist values.
 		worklist removeAll.
 		toVisit do: [ :node | visited at: node hash put: node  ]. "If we do both things in the same loop sone nodes will be missing in `visited` and could lead to errors later."
