@@ -105,6 +105,11 @@ workspace mainModel: yso;
 workspace interModelModeDuring: [ (FamixJavaCHABuilder entryPoint: (yso entityNamed: 'ysoserial.payloads.CommonsCollections1.getObject(String)')) build ]
 ```
 
+> Note:
+> When parsing the main model with `VerveineJ`, you must use the `-autocp` argument pointing to a folder containing every `.jar` of the external libraries.  
+> Without providing these jars, `VerveineJ` cannot resolve external types, resulting in incomplete stubs. FamixBridge relies on exact signatures. Missing dependencies will prevent the bridge from connecting entities across different models, leading to broken call graphs and data inconsistencies.  
+> If library (A) depends on library (B), ensure both are present in the `-autocp` folder when parsing the main model. Additionally, you must also provide library (B) via `-autocp` when parsing library (A). 
+
 ## Additional properties
 
 It can be useful sometimes to annotate some nodes with some informations. This is possible with additional properties. 
