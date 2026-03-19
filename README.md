@@ -20,7 +20,7 @@ To install the project in your Pharo image execute:
 
 ```Smalltalk
     Metacello new
-    	githubUser: 'jecisc' project: 'Famix-CallGraphs' commitish: 'main' path: 'src';
+    	githubUser: 'moosetechnology' project: 'Famix-CallGraphs' commitish: 'main' path: 'src';
     	baseline: 'FamixCallGraphs';
     	load
 ```
@@ -30,7 +30,7 @@ To add it to your baseline:
 ```Smalltalk
     spec
     	baseline: 'FamixCallGraphs'
-    	with: [ spec repository: 'github://jecisc/Famix-CallGraphs:main/src' ]
+    	with: [ spec repository: 'github://moosetechnology/Famix-CallGraphs:main/src' ]
 ```
 
 ## Documentation
