@@ -122,7 +122,7 @@ FamixAbstractCallGraphNode >> inspectGraph: aBuilder [
 						"We want to color nodes with additional properties if this feature is available"
 						(node respondsTo: #additionalProperties) ifTrue: [ node additionalProperties ifNotNil: [ box color: (node = self ifTrue: [ #purple ] ifFalse: [ #green ]) ] ].
 
-			          box @ (RSLabeled new text: [ :n | n realMethod printString ]) ].
+			          box @ (RSLabeled new text: [ :n | n realMethod printString ]) ] limit: (20 max: self callees size).
 
 	canvas addAll: shapes.
 
@@ -247,6 +247,24 @@ FamixAbstractCallGraphNode >> withAllCallees [
 FamixAbstractCallGraphNode >> withAllCalleesCollect: aBlock [
 
 	^ self withDeep: #callees collect: aBlock
+]
+
+{ #category : 'API' }
+FamixAbstractCallGraphNode >> withAllCalleesCollect: aBlock limit: aNumber [
+
+	| result nbCollected queue |
+	nbCollected := 0.
+	result := OrderedCollection new.
+	queue := OrderedCollection with: self.
+
+	[ queue isNotEmpty and: [ nbCollected <= aNumber ] ] whileTrue: [
+			| node |
+			nbCollected := nbCollected + 1.
+			node := queue removeFirst.
+			queue addAll: node callees.
+			result add: (aBlock value: node) ].
+
+	^ result
 ]
 
 { #category : 'API' }

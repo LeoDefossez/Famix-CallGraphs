@@ -40,7 +40,7 @@ FamixCallGraph >> entryPoints: aCollection [
 	entryPoints := aCollection collect: [ :method |
 			               method isMooseObject
 				               ifTrue: [ method asCallGraphNode ]
-				               ifFalse: [ method ] ]
+				               ifFalse: [ method ] ] as: Array "We want to be sure we do not have a MooseGroup"
 ]
 
 { #category : 'accessing' }
