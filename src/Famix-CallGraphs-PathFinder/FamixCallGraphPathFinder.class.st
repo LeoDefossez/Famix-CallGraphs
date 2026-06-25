@@ -25,7 +25,8 @@ Class {
 	#name : 'FamixCallGraphPathFinder',
 	#superclass : 'Object',
 	#instVars : [
-		'graph'
+		'graph',
+		'depth'
 	],
 	#category : 'Famix-CallGraphs-PathFinder',
 	#package : 'Famix-CallGraphs-PathFinder'
@@ -44,6 +45,18 @@ FamixCallGraphPathFinder >> checkValidityOf: startNode and: targetNode [
 
 	(self graph allNodes includes: startNode) ifFalse: [ self error: 'Entrypoint node is not in the graph' ].
 	(self graph allNodes includes: targetNode) ifFalse: [ self error: 'Endpoint node is not in the graph' ]
+]
+
+{ #category : 'accessing' }
+FamixCallGraphPathFinder >> depth [
+
+	^ depth
+]
+
+{ #category : 'accessing' }
+FamixCallGraphPathFinder >> depth: anInteger [
+
+	depth := anInteger
 ]
 
 { #category : 'accessing' }
@@ -112,7 +125,8 @@ FamixCallGraphPathFinder >> reconstructPath: cameFrom target: targetNode [
 { #category : 'accessing' }
 FamixCallGraphPathFinder >> unsafeFindAllPathFrom: startNode to: targetNode [
 	"Use a Breadth-First Search to find ALL simple paths between nodes without loops.
-	 WARNING: This has exponential complexity. Do not run on dense graphs."
+	 WARNING: This has exponential complexity. Do not run on dense graphs.
+	 Only explores paths up to 'depth' edges."
 
 	| queue currentPath lastNode foundPaths |
 	foundPaths := OrderedCollection new.
@@ -126,35 +140,39 @@ FamixCallGraphPathFinder >> unsafeFindAllPathFrom: startNode to: targetNode [
 
 			lastNode = targetNode
 				ifTrue: [ "We have a complete path, so we stop here" foundPaths add: currentPath ]
-				ifFalse: [ "If the last nodes isn't attained, then continuer the research"
-						lastNode callees do: [ :callee | "CRITICAL : We check for already studied nodes only in the current path"
-								(currentPath includes: callee) ifFalse: [ "New path = Current path + Neighbor"
-									queue add: (currentPath copyWith: callee) ] ] ] ].
+				ifFalse: [ "Check depth limit before continuing the research"
+						(depth isNil or: [currentPath size <= depth]) ifTrue: [ 
+							lastNode callees do: [ :callee | "CRITICAL : We check for already studied nodes only in the current path"
+									(currentPath includes: callee) ifFalse: [ "New path = Current path + Neighbor"
+										queue add: (currentPath copyWith: callee) ] ] ] ] ].
 
 	^ foundPaths
 ]
 
 { #category : 'accessing' }
 FamixCallGraphPathFinder >> unsafeFindPathFrom: startNode to: targetNode [
-	"Use a Breadth-First Search to find a path from the two given nodes"
+	"Use a Breadth-First Search to find a path from the two given nodes up to a maximum 'depth'"
 
-	| queue cameFrom current |
-	"Intialize queue, and precedences colloration"
-	queue := OrderedCollection with: startNode.
+	| queue cameFrom currentAssoc current currentDepth |
+	"Initialize queue with Associations (Node -> Depth), and precedences colloration"
+	queue := OrderedCollection with: startNode -> 0.
 	cameFrom := Dictionary new.
 	cameFrom at: startNode put: nil.
 
 	[ queue isNotEmpty ] whileTrue: [
-			current := queue removeFirst.
+			currentAssoc := queue removeFirst.
+			current := currentAssoc key.
+			currentDepth := currentAssoc value.
 
 			"If the target node is found then return the path taken"
 			current = targetNode ifTrue: [ ^ self reconstructPath: cameFrom target: targetNode ].
 
-			"Check on neighbors"
-			current callees do: [ :callee | "If already studied, then do not study it again"
-					(cameFrom includesKey: callee) ifFalse: [
-							cameFrom at: callee put: current.
-							queue add: callee ] ] ].
+			"Check on neighbors only if we haven't reached the max depth"
+			(depth isNil or: [ currentDepth size < depth ]) ifTrue: [
+					current callees do: [ :callee | "If already studied, then do not study it again"
+							(cameFrom includesKey: callee) ifFalse: [
+									cameFrom at: callee put: current.
+									queue add: callee -> (currentDepth + 1) ] ] ] ].
 
-	^ nil "No path found"
+	^ nil "No path found within depth limit"
 ]
