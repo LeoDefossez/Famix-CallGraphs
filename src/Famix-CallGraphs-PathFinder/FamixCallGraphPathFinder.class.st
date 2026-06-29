@@ -26,7 +26,8 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'graph',
-		'depth'
+		'depth',
+		'allNodes'
 	],
 	#category : 'Famix-CallGraphs-PathFinder',
 	#package : 'Famix-CallGraphs-PathFinder'
@@ -40,11 +41,18 @@ FamixCallGraphPathFinder class >> newOn: aGraph [
 		  yourself
 ]
 
+{ #category : 'instance creation' }
+FamixCallGraphPathFinder class >> newOn: aGraph withAllNodes: nodes [
+
+	^ self new
+		  graph: aGraph withAllNodes: nodes;
+		  yourself
+]
+
 { #category : 'accessing' }
 FamixCallGraphPathFinder >> checkValidityOf: startNode and: targetNode [
-
-	(self graph allNodes includes: startNode) ifFalse: [ self error: 'Entrypoint node is not in the graph' ].
-	(self graph allNodes includes: targetNode) ifFalse: [ self error: 'Endpoint node is not in the graph' ]
+	(allNodes includes: startNode) ifFalse: [ self error: 'Entrypoint node is not in the graph' ].
+	(allNodes includes: targetNode) ifFalse: [ self error: 'Endpoint node is not in the graph' ]
 ]
 
 { #category : 'accessing' }
@@ -104,7 +112,17 @@ FamixCallGraphPathFinder >> graph [
 { #category : 'accessing' }
 FamixCallGraphPathFinder >> graph: aGraph [
 
-	graph := aGraph
+	graph := aGraph.
+	"Collecting all nodes in a simple collection to optimise the validity check of nodes"
+	allNodes := self graph allNodes
+]
+
+{ #category : 'accessing' }
+FamixCallGraphPathFinder >> graph: aGraph withAllNodes: nodes [
+
+	graph := aGraph.
+	"Collecting all nodes in a simple collection to optimise the validity check of nodes"
+	allNodes := nodes
 ]
 
 { #category : 'as yet unclassified' }
